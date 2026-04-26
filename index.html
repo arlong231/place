@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>내곡동 타임캡슐 지도 — 개인 과제</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Black+Han+Sans&display=swap');
+
+:root {
+  --cream:    #FFFDF5;
+  --brown:    #5D4037;
+  --brown-l:  #EFEBE9;
+  --brown-m:  #BCAAA4;
+  --amber:    #F59E0B;
+  --amber-l:  #FFFBEB;
+  --amber-d:  #B45309;
+  --teal:     #0D9488;
+  --teal-l:   #F0FDFA;
+  --rose:     #E11D48;
+  --rose-l:   #FFF1F2;
+  --indigo:   #4338CA;
+  --indigo-l: #EEF2FF;
+  --emerald:  #059669;
+  --emerald-l:#ECFDF5;
+  --slate:    #334155;
+  --slate-l:  #F8FAFC;
+  --gray:     #64748B;
+  --gray-m:   #CBD5E1;
+  --ink:      #1E293B;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Nanum Gothic',sans-serif;
+  background:#D4C5A9;
+  font-size:9pt;
+}
+
+@page { size:A4 portrait; margin:10mm 12mm; }
+@media print { body{background:white;} .page{box-shadow:none;margin:0;} }
+
+.page {
+  width:210mm;
+  min-height:297mm;
+  background:var(--cream);
+  margin:8mm auto;
+  box-shadow:0 6px 40px rgba(0,0,0,.25);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  overflow:hidden;
+}
+
+/* 오래된 종이 질감 배경 */
+.page::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse at 5% 10%, rgba(210,180,140,.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 95% 85%, rgba(180,150,100,.1) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 24pt, rgba(193,170,130,.07) 24pt, rgba(193,170,130,.07) 25pt);
+  pointer-events:none; z-index:0;
+}
+
+/* ── HEADER ── */
+.hdr {
+  background:var(--amber);
+  padding:6mm 12mm 5mm;
+  position:relative;
+  z-index:1;
+  overflow:hidden;
+}
+.hdr::after {
+  content:'';
+  position:absolute; bottom:0; left:0; right:0; height:2mm;
+  background:repeating-linear-gradient(90deg, var(--amber-d) 0, var(--amber-d) 4mm, var(--brown) 4mm, var(--brown) 8mm);
+  opacity:.4;
+}
+.hdr-eyebrow {
+  font-size:7.5pt;
+  color:var(--amber-d);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:1.5mm;
+}
+.hdr-title {
+  font-family:'Black Han Sans',sans-serif;
+  font-size:18pt;
+  color:var(--ink);
+  letter-spacing:-0.5px;
+  line-height:1.1;
+}
+.hdr-sub {
+  font-size:7.5pt;
+  color:var(--slate);
+  margin-top:2mm;
+  line-height:1.6;
+}
+.hdr-sub em {
+  color:var(--amber-d);
+  font-style:normal;
+  font-weight:700;
+}
+.hdr-row {
+  display:flex; justify-content:space-between; align-items:flex-end;
+  margin-top:2.5mm;
+}
+.info-fields {
+  display:flex; gap:4mm; align-items:center; font-size:8pt; color:var(--ink);
+}
+.info-blank { border-bottom:1pt solid var(--ink); width:20mm; height:4mm; }
+.info-blank.nm { width:34mm; }
+.due-tag {
+  background:var(--amber);
+  color:var(--ink);
+  font-weight:800;
+  font-size:8pt;
+  padding:1.5mm 3mm;
+  border-radius:2pt;
+  white-space:nowrap;
+}
+
+/* ── INTRO ── */
+.intro {
+  margin:4mm 12mm 0;
+  background:var(--amber-l);
+  border:1.5pt solid var(--amber);
+  border-radius:5pt;
+  padding:3mm 4mm;
+  position:relative; z-index:1;
+}
+.intro-title {
+  font-family:'Black Han Sans',sans-serif;
+  font-size:10pt;
+  color:var(--amber-d);
+  margin-bottom:1.5mm;
+}
+.intro-body { font-size:8.5pt; color:var(--slate); line-height:1.7; }
+.intro-body strong { color:var(--amber-d); }
+.connect-chips {
+  display:flex; flex-wrap:wrap; gap:1.5mm; margin-top:2mm;
+}
+.chip {
+  font-size:7.5pt; padding:1mm 2.5mm; border-radius:20pt;
+  font-weight:700; white-space:nowrap;
+}
+
+/* ── CONTENT ── */
+.content {
+  padding:3mm 12mm 4mm;
+  display:flex; flex-direction:column; gap:3.5mm;
+  flex:1; position:relative; z-index:1;
+}
+
+/* section header */
+.sec-hd {
+  display:flex; align-items:center; gap:2mm;
+  margin-bottom:2mm;
+}
+.sec-num {
+  width:18pt; height:18pt; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Black Han Sans',sans-serif;
+  font-size:10pt; color:white; flex-shrink:0;
+}
+.sec-title { font-size:9.5pt; font-weight:800; color:var(--ink); }
+.sec-sub { font-size:7.5pt; color:var(--gray); margin-left:auto; }
+
+/* ── ① 나의 장소 5곳 카드 ── */
+.place-cards { display:flex; flex-direction:column; gap:2mm; }
+.place-card {
+  border-radius:4pt;
+  border:1pt solid;
+  padding:2.5mm 3mm;
+  display:grid;
+  grid-template-columns:8mm 1fr 1fr;
+  gap:2mm;
+  align-items:start;
+}
+.pc-num {
+  font-family:'Black Han Sans',sans-serif;
+  font-size:13pt;
+  opacity:.25;
+  line-height:1;
+}
+.pc-left { display:flex; flex-direction:column; gap:1.5mm; }
+.pc-right { display:flex; flex-direction:column; gap:1.5mm; border-left:1pt solid; padding-left:2mm; }
+.pc-field { display:flex; flex-direction:column; gap:.5mm; }
+.pc-label { font-size:7pt; font-weight:700; }
+.pc-line { border-bottom:.7pt solid; height:4.5mm; }
+
+/* 감정 이모지 선택 */
+.emoji-row { display:flex; gap:1.5mm; flex-wrap:wrap; }
+.emoji-opt {
+  font-size:12pt;
+  cursor:default;
+  opacity:.35;
+  line-height:1;
+}
+.emoji-opt.sel { opacity:1; }
+
+/* ── ② 장소 지도 그리기 ── */
+.map-canvas {
+  border:1.5pt solid var(--gray-m);
+  border-radius:4pt;
+  background:white;
+  position:relative;
+  height:52mm;
+  overflow:hidden;
+}
+.map-canvas-inner {
+  width:100%; height:100%;
+  background:
+    linear-gradient(var(--gray-m) .5pt, transparent .5pt),
+    linear-gradient(90deg, var(--gray-m) .5pt, transparent .5pt);
+  background-size:8mm 8mm;
+  opacity:.3;
+}
+.map-hint {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  font-family:'Nanum Pen Script',cursive;
+  font-size:12pt; color:var(--gray-m);
+  gap:2mm; pointer-events:none;
+}
+.map-legend-row {
+  display:flex; flex-wrap:wrap; gap:1.5mm 4mm; margin-top:2mm;
+  font-size:7.5pt;
+}
+.ml-item { display:flex; align-items:center; gap:1.5mm; }
+.ml-dot { width:9pt;height:9pt;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:6pt;color:white;font-weight:700; }
+
+/* ── ③ 장소감 성찰 ── */
+.reflection-grid { display:grid; grid-template-columns:1fr 1fr; gap:2mm; }
+.ref-card {
+  border-radius:4pt; border:1pt solid;
+  padding:2mm 2.5mm;
+}
+.ref-q { font-size:8pt; font-weight:700; margin-bottom:1.5mm; line-height:1.4; }
+.ref-line { border-bottom:.6pt solid; height:5mm; margin-bottom:.5mm; }
+.ref-line:last-child { margin-bottom:0; }
+
+/* ── ④ 지역 문제 발견 ── */
+.problem-box {
+  border:1.5pt solid var(--rose);
+  border-radius:4pt;
+  padding:2.5mm 3mm;
+  background:var(--rose-l);
+}
+.pb-row { display:flex; gap:2mm; align-items:flex-start; }
+.pb-col { flex:1; }
+.pb-label { font-size:7.5pt; font-weight:700; margin-bottom:1mm; }
+.pb-line { border-bottom:.7pt solid #FECDD3; height:5mm; margin-bottom:.8mm; }
+.pb-chip { display:inline-block; background:var(--rose); color:white; font-size:7pt; font-weight:700; padding:.5mm 2mm; border-radius:2pt; margin-bottom:1mm; }
+
+/* ── ⑤ 나의 장소애 한 줄 ── */
+.love-box {
+  background:var(--amber-l);
+  border:1.5pt solid var(--amber);
+  border-radius:4pt;
+  padding:3mm 4mm;
+  display:flex; align-items:center; gap:3mm;
+}
+.love-icon { font-size:20pt; flex-shrink:0; }
+.love-body { flex:1; }
+.love-label { font-size:8pt; color:var(--ink); margin-bottom:1.5mm; }
+.love-line { border-bottom:1.5pt solid var(--amber-d); height:6mm; }
+
+/* ── FOOTER ── */
+.footer {
+  background:var(--amber-l);
+  border-top:1.5pt solid var(--amber);
+  padding:2mm 12mm;
+  display:flex; justify-content:space-between; align-items:center;
+  flex-shrink:0; z-index:1;
+}
+.footer span { font-size:7pt; color:var(--amber-d); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-eyebrow">개인 과제 · 장소감 탐구</div>
+  <div class="hdr-title">내 동네 타임캡슐 지도</div>
+  <div class="hdr-sub">
+    <em>내가 자주 가는 장소 5곳</em>을 지도에 표시하고, 그 장소가 나에게 어떤 의미인지 기록합니다.<br>
+    → 이것이 지리학에서 말하는 <em>장소감(Sense of Place)</em>입니다.
+  </div>
+  <div class="hdr-row">
+    <div class="info-fields">
+      <span>학년</span><div class="info-blank"></div>
+      <span>반</span><div class="info-blank"></div>
+      <span>번호</span><div class="info-blank"></div>
+      <span>이름</span><div class="info-blank nm"></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTRO -->
+<div class="intro">
+  <div class="intro-title">🗺️ 이 활동은 왜 하나요?</div>
+  <div class="intro-body">
+    우리가 배운 <strong>헌법</strong>은 모든 사람이 자신의 삶터에서 <strong>행복하게 살 권리</strong>를 보장합니다.
+    지리학자들은 사람이 장소와 맺는 감정적 유대를 <strong>'장소감'</strong>이라 부르는데,
+    이는 단순한 위치가 아니라 <em>기억·습관·감정이 담긴 공간</em>입니다.
+    나의 장소를 기록하고 비교하다 보면 <em>"우리 동네에 10대를 위한 공간이 충분한가?"</em>라는
+    지역 문제도 자연스럽게 보이기 시작합니다.
+  </div>
+  <div class="connect-chips">
+    <span class="chip" style="background:#4338CA;color:white;">📜 헌법·행복추구권</span>
+    <span class="chip" style="background:#0D9488;color:white;">🗺️ 장소감·장소애 (07-02)</span>
+    <span class="chip" style="background:#E11D48;color:white;">🔍 지역문제 시각화 (07-03)</span>
+    <span class="chip" style="background:#5D4037;color:white;">💜 사회정서: 자기인식·공감</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ① 나의 장소 5곳 -->
+  <div>
+    <div class="sec-hd">
+      <div class="sec-num" style="background:var(--amber-d);">1</div>
+      <div class="sec-title">나의 장소 5곳 — 자주 가거나 의미 있는 장소를 써 보세요</div>
+      <div class="sec-sub">기억, 감정, 이유 모두 OK</div>
+    </div>
+    <div class="place-cards">
+
+      <div class="place-card" style="border-color:#E74C3C;background:#FFFAFA;">
+        <div class="pc-num" style="color:#E74C3C;">1</div>
+        <div class="pc-left">
+          <div class="pc-field">
+            <div class="pc-label" style="color:#C0392B;">📍 장소 이름</div>
+            <div class="pc-line" style="border-color:#FECACA;"></div>
+          </div>
+          <div class="pc-field">
+            <div class="pc-label" style="color:#C0392B;">🔖 가는 이유 / 하는 일</div>
+            <div class="pc-line" style="border-color:#FECACA;"></div>
+          </div>
+        </div>
+        <div class="pc-right" style="border-color:#FECACA;">
+          <div class="pc-field">
+            <div class="pc-label" style="color:#C0392B;">💬 이 장소가 나에게 주는 느낌</div>
+            <div class="pc-line" style="border-color:#FECACA;"></div>
+            <div class="pc-line" style="border-color:#FECACA;"></div>
+          </div>
+          <div class="pc-field">
+            <div class="pc-label" style="color:#C0392B;">😊 감정 (해당에 ○)</div>
+            <div class="emoji-row">
+              <span class="emoji-opt">😊</span><span class="emoji-opt">😌</span>
+              <span class="emoji-opt">😤</span><span class="emoji-opt">😔</span>
+              <span class="emoji-opt">🤩</span><span class="emoji-opt">😶</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" style="border-color:#E67E22;background:#FFFBF5;">
+        <div class="pc-num" style="color:#E67E22;">2</div>
+        <div class="pc-left">
+          <div class="pc-field">
+            <div class="pc-label" style="color:#A04000;">📍 장소 이름</div>
+            <div class="pc-line" style="border-color:#FED7AA;"></div>
+          </div>
+          <div class="pc-field">
+            <div class="pc-label" style="color:#A04000;">🔖 가는 이유 / 하는 일</div>
+            <div class="pc-line" style="border-color:#FED7AA;"></div>
+          </div>
+        </div>
+        <div class="pc-right" style="border-color:#FED7AA;">
+          <div class="pc-field">
+            <div class="pc-label" style="color:#A04000;">💬 이 장소가 나에게 주는 느낌</div>
+            <div class="pc-line" style="border-color:#FED7AA;"></div>
+            <div class="pc-line" style="border-color:#FED7AA;"></div>
+          </div>
+          <div class="pc-field">
+            <div class="pc-label" style="color:#A04000;">😊 감정 (해당에 ○)</div>
+            <div class="emoji-row">
+              <span class="emoji-opt">😊</span><span class="emoji-opt">😌</span>
+              <span class="emoji-opt">😤</span><span class="emoji-opt">😔</span>
+              <span class="emoji-opt">🤩</span><span class="emoji-opt">😶</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" style="border-color:#16A085;background:#F5FFFD;">
+        <div class="pc-num" style="color:#16A085;">3</div>
+        <div class="pc-left">
+          <div class="pc-field">
+            <div class="pc-label" style="color:#0E6655;">📍 장소 이름</div>
+            <div class="pc-line" style="border-color:#A7F3D0;"></div>
+          </div>
+          <div class="pc-field">
+            <div class="pc-label" style="color:#0E6655;">🔖 가는 이유 / 하는 일</div>
+            <div class="pc-line" style="border-color:#A7F3D0;"></div>
+          </div>
+        </div>
+        <div class="pc-right" style="border-color:#A7F3D0;">
+          <div class="pc-field">
+            <div class="pc-label" style="color:#0E6655;">💬 이 장소가 나에게 주는 느낌</div>
+            <div class="pc-line" style="border-color:#A7F3D0;"></div>
+            <div class="pc-line" style="border-color:#A7F3D0;"></div>
+          </div>
+          <div class="pc-field">
+            <div class="pc-label" style="color:#0E6655;">😊 감정 (해당에 ○)</div>
+            <div class="emoji-row">
+              <span class="emoji-opt">😊</span><span class="emoji-opt">😌</span>
+              <span class="emoji-opt">😤</span><span class="emoji-opt">😔</span>
+              <span class="emoji-opt">🤩</span><span class="emoji-opt">😶</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4, 5번 — 나란히 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2mm;">
+        <div class="place-card" style="border-color:#4338CA;background:#F8F7FF;grid-template-columns:6mm 1fr;">
+          <div class="pc-num" style="color:#4338CA;">4</div>
+          <div class="pc-left">
+            <div class="pc-field">
+              <div class="pc-label" style="color:#3730A3;">📍 장소 이름</div>
+              <div class="pc-line" style="border-color:#C7D2FE;"></div>
+            </div>
+            <div class="pc-field">
+              <div class="pc-label" style="color:#3730A3;">🔖 이유</div>
+              <div class="pc-line" style="border-color:#C7D2FE;"></div>
+            </div>
+            <div class="pc-field">
+              <div class="pc-label" style="color:#3730A3;">💬 느낌</div>
+              <div class="pc-line" style="border-color:#C7D2FE;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="place-card" style="border-color:#5D4037;background:#FBF8F5;grid-template-columns:6mm 1fr;">
+          <div class="pc-num" style="color:#5D4037;">5</div>
+          <div class="pc-left">
+            <div class="pc-field">
+              <div class="pc-label" style="color:#4E342E;">📍 장소 이름</div>
+              <div class="pc-line" style="border-color:#D7CCC8;"></div>
+            </div>
+            <div class="pc-field">
+              <div class="pc-label" style="color:#4E342E;">🔖 이유</div>
+              <div class="pc-line" style="border-color:#D7CCC8;"></div>
+            </div>
+            <div class="pc-field">
+              <div class="pc-label" style="color:#4E342E;">💬 느낌</div>
+              <div class="pc-line" style="border-color:#D7CCC8;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ② 장소감 성찰 + ③ 지역문제 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3mm;">
+
+    <!-- ② -->
+    <div>
+      <div class="sec-hd">
+        <div class="sec-num" style="background:var(--indigo);">2</div>
+        <div class="sec-title" style="font-size:8.5pt;">장소감 성찰</div>
+      </div>
+      <div class="reflection-grid">
+        <div class="ref-card" style="border-color:#C7D2FE;background:var(--indigo-l);">
+          <div class="ref-q" style="color:var(--indigo);">5곳 중 가장 소중한 장소와 그 이유는?</div>
+          <div class="ref-line" style="border-color:#C7D2FE;"></div>
+          <div class="ref-line" style="border-color:#C7D2FE;"></div>
+          <div class="ref-line" style="border-color:#C7D2FE;"></div>
+        </div>
+        <div class="ref-card" style="border-color:#D7CCC8;background:var(--brown-l);">
+          <div class="ref-q" style="color:var(--brown);">없어지면 가장 슬플 장소는? 왜?</div>
+          <div class="ref-line" style="border-color:#D7CCC8;"></div>
+          <div class="ref-line" style="border-color:#D7CCC8;"></div>
+          <div class="ref-line" style="border-color:#D7CCC8;"></div>
+        </div>
+      </div>
+      <div class="ref-card" style="border-color:#A7F3D0;background:var(--emerald-l);margin-top:2mm;">
+        <div class="ref-q" style="color:var(--emerald);">
+          💜 SEL 연결 — 나의 장소 목록이 친구와 다르다면? 거기서 무엇을 느끼나요?
+        </div>
+        <div class="ref-line" style="border-color:#A7F3D0;"></div>
+        <div class="ref-line" style="border-color:#A7F3D0;"></div>
+      </div>
+    </div>
+
+    <!-- ③ -->
+    <div>
+      <div class="sec-hd">
+        <div class="sec-num" style="background:var(--rose);">3</div>
+        <div class="sec-title" style="font-size:8.5pt;">지역 문제 발견 (07-03)</div>
+      </div>
+      <div class="problem-box">
+        <div class="pb-chip">📌 내 장소에서 발견한 문제</div>
+        <div class="pb-row">
+          <div class="pb-col">
+            <div class="pb-label" style="color:var(--rose);">어떤 문제인가요?</div>
+            <div class="pb-line"></div>
+            <div class="pb-line"></div>
+            <div class="pb-label" style="color:var(--rose);margin-top:1mm;">어느 장소에서?</div>
+            <div class="pb-line"></div>
+          </div>
+          <div class="pb-col">
+            <div class="pb-label" style="color:var(--rose);">관련 헌법 권리는?</div>
+            <div class="pb-line"></div>
+            <div class="pb-label" style="color:var(--rose);margin-top:1mm;">해결하려면 누가 움직여야?</div>
+            <div style="display:flex;flex-wrap:wrap;gap:1mm;margin-top:1mm;font-size:7.5pt;">
+              <span style="border:1pt solid #FDA4AF;padding:.5mm 2mm;border-radius:20pt;">국가·지자체</span>
+              <span style="border:1pt solid #FDA4AF;padding:.5mm 2mm;border-radius:20pt;">학교</span>
+              <span style="border:1pt solid #FDA4AF;padding:.5mm 2mm;border-radius:20pt;">주민</span>
+              <span style="border:1pt solid #FDA4AF;padding:.5mm 2mm;border-radius:20pt;">우리 학생</span>
+            </div>
+            <div class="pb-label" style="color:var(--rose);margin-top:1.5mm;">한 줄 개선 제안:</div>
+            <div class="pb-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ④ 나의 장소애 -->
+  <div>
+    <div class="sec-hd">
+      <div class="sec-num" style="background:var(--amber-d);">4</div>
+      <div class="sec-title">나의 장소애 — 이 동네를 모르는 친구에게 한 문장으로 소개한다면?</div>
+    </div>
+    <div class="love-box">
+      <div class="love-icon">💌</div>
+      <div class="love-body">
+        <div class="love-label">내곡동은&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;에게&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;한 동네다. 왜냐하면</div>
+        <div class="love-line"></div>
+        <div style="font-size:7.5pt;color:var(--amber-d);margin-top:1.5mm;">
+          ★ 불편한 점도, 좋은 점도 모두 장소감의 일부입니다. 솔직하게 써 보세요.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>내곡중학교 · 사회 · 개인 과제</span>
+  <span>성취기준 [9사(지리)07-02] [9사(지리)07-03] · 사회정서교육 연계</span>
+</div>
+
+</div>
+</body>
+</html>
